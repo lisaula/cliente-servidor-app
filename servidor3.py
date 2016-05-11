@@ -71,6 +71,146 @@ class cmd:
         else:
             return 'No ha ingresado nada'
         return self.path
+class server:
+    s = socket()
+    conn = None
+    salir = False
+    def __init__(self, host, port):
+        s.bind(host,port)
+        s.listen(5)
+        conn, addr = s.accept()
+
+    def recibir(myself, tipo, nombre):
+        salir = False
+        comando =''
+        f = None
+        if tipo != 'mensaje':
+            f = open(nombre, "wb")
+        while True:
+            print 'dentro While'
+            try:
+                # Recibir datos del cliente.
+                input_data = conn.recv(band_width)
+                print 'input data', input_data
+            except error:
+                print("Error de lectura.")
+                break
+            else:
+                if input_data:
+                    print ' 1 else'
+                    # Compatibilidad con Python 3.
+                    if isinstance(input_data, bytes):
+                        fvar = input_data.find('*')
+                        if(fvar >0):
+                            input_data = buffer(input_data,0,fvar)
+                            end = True
+                        elif(fvar==0):
+                            input_data=''
+                            end = True;
+                        else:
+                            end = False
+                        #end = input_data.find('final')
+                        print ' is isinstance', end
+                    else:
+                        end = input_data == chr(1)
+                        print 'else isinstance', end
+
+                    input_data = str(input_data)
+                    if not end:
+                        var = input_data.find('salir')
+                        if(var >0):
+                            input_data = buffer(input_data,0,var)
+                            end = True
+                            salir=True
+                        elif(var ==0):
+                            salir =True
+                            break;
+                        # Almacenar datos.
+                        if tipo != 'mensaje':
+                            f.write(input_data)
+                        else:
+                            comando+=input_data
+                        print 'if not end'
+                    else:
+                        var = input_data.find('salir')
+                        if(var >0):
+                            input_data = buffer(input_data,0,var)
+                            end = True
+                        elif(var ==0):
+                            break;
+                        #f.write(input_data)
+                        if tipo != 'mensaje':
+                            f.write(input_data)
+                        else:
+                            comando += str(input_data)
+                        print 'end', comando
+                        break;
+                else:
+                    break
+                    #print 'no hay nada'
+            finally :
+                print 'termino'
+        if tipo != 'mensaje':
+            f.close()
+        print("El archivo se ha recibido correctamente.")
+
+        print 'comando ',comando
+        return comando
+
+    def enviar(myself, respuesta, tipo):
+        init =0;
+        while True:
+            if(tipo =='mensaje'):
+                while True:
+                    #f = open("archivo.jpg", "rb")
+                    #message = raw_input('Mensaje a enviar: ')
+                    message = respuesta
+                    if(len(message)>band_width):
+                        while True:
+                            if(init >= len(message)):
+                                break;    
+                            if((len(message)-init)>=band_width):
+                                content = buffer(message,init,band_width)
+                                conn.send(content)
+                                print content
+                                init +=band_width
+                            else:
+                                content = buffer(message, init,len(message)-init)
+                                conn.send(content)
+                                print content
+                                init += len(message)-init
+                    else:
+                        conn.send(message)
+                        print message
+                    break
+            else:
+                while True:
+                    f = open(respuesta, "rb")
+                    content = f.read(1024)
+                    
+                    while content:
+                        # Enviar contenido.
+                        conn.send(content)
+                        content = f.read(1024)
+                    
+                    break
+            # Se utiliza el caracter de código 1 para indicar
+            # al cliente que ya se ha enviado todo el contenido.
+            try:
+                var = '*'
+                conn.send(var)
+                print var
+            except TypeError:
+                # Compatibilidad con Python 3.
+                conn.send(bytes(chr(1), "utf-8"))
+            finally:
+                break;
+        print 'El archivo se ha enviado exitosamente' 
+
+    def close(myself):
+        conn.close()
+
+
 
 def main():
     s = socket()
