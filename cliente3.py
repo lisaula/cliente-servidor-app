@@ -7,7 +7,7 @@ from socket import socket
 band_width = 1024
 def main():
     s = socket()
-    s.connect(("localhost", 6035))
+    s.connect(("localhost", 6038))
     init =0;
     while True:
         while True:
