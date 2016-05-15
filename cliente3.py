@@ -256,10 +256,13 @@ def main():
             if(size != 'Archivo no existe'):
                 if(len(var)>2):
                     recibir3(var[2]+'/'+var[1],size,s)
+        elif var == 'salir':
+            s.close()
+            return ''
         #recibir('mensaje','',s)
 
     # Cerrar conexión y archivo.
-    s.close()
+    #s.close()
     #f.close()
 if __name__ == "__main__":
     main()

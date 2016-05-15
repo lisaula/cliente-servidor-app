@@ -10,6 +10,7 @@ import sys
 from manager import manager
 import math
 import time
+from thread import *
 
 band_width = 1024
 def unirName(var):
@@ -180,6 +181,75 @@ def recibir3(nombre, size, conn):
         break
     return 'Recibido correctamente'
 
+def clientthread(conn):
+    m = manager()
+    m.load()
+    mycmd = cmd()
+    log = False;
+    usuario= ''
+    while True:
+        if not log:
+            enviar('Envia tu \'username\'<espacio>\'password\' para logearte, o envia \'registrar\'','mensaje',conn)
+        while(log ==False):
+            recibido= recibir('mensaje','',conn)
+            #print 'al entrar log ',recibido
+            if(recibido.find('registrar')>=0):
+                enviar('Envia tu username<espacio>contrasenia para registrarte','mensaje',conn)
+                while(True):
+                    res = recibir('mensaje','',conn)
+                    res = res.split(' ')
+                    #print 'res ', res
+                    if(len(res)>1):
+                        if(m.registrar(res[0], res[1])):
+                            enviar('Registrado correctamente','mensaje',conn)
+                            usuario = res[0]
+                            #print 'usuario ', usuario
+                            #m.imprimir()
+                            mycmd.terminal('mkdir '+usuario, conn)
+                            mycmd.terminal('cd /'+usuario, conn)
+                            mycmd.setUsuario(usuario)
+                            log = True
+                            break
+                        else:
+                            enviar('Error al registar usuario','mensaje',conn)
+                    else:
+                        enviar('Formato invalido','mensaje',conn)
+            else:
+                recibido = recibido.split(' ')
+                #print 'recibio ',recibido
+                if(len(recibido)>1):
+                    #m.imprimir()
+                    if(m.log(recibido[0],recibido[1])):
+                        log = True
+                        usuario = recibido[0]
+                        mycmd.terminal('mkdir '+usuario, conn)
+                        mycmd.terminal('cd /'+usuario, conn)
+                        mycmd.setUsuario(usuario)
+                        enviar('Estas logeado','mensaje',conn)
+                        break
+                    else:
+                        enviar('Contrasenia o Username invalido\nEnvia tu \'username\'<espacio>\'password\' para logearte, o envia \'registrar\'','mensaje',conn)
+
+                else:
+                    enviar('Contrasenia o Username invalido\nEnvia tu \'username\'<espacio>\'password\' para logearte, o envia \'registrar\'','mensaje',conn)
+        recibido = recibir('mensaje','',conn)
+        #print 'rec',recibido;
+        respuesta = mycmd.terminal(recibido, conn)
+
+        if(recibido=='salir'):
+            m.unlog(usuario)
+            #m.imprimir()
+            usuario =''
+            log = False
+            m.down()
+            #print respuesta
+            #print recibido
+            conn.close()
+            #continue
+            break
+        enviar(respuesta,'mensaje',conn)
+
+
 def recibir(tipo, nombre, conn):
     
     salir = False
@@ -332,79 +402,87 @@ def enviar(respuesta, tipo, conn):
     print 'El archivo se ha enviado exitosamente' 
 
 def main():
-    m = manager()
-    m.load()
+    #m = manager()
+    #m.load()
     s=socket()
     s.bind(("localhost", 6052))
     s.listen(5)
-    conn, addr = s.accept() 
-    print >>sys.stderr, 'concexion desde', addr
-    mycmd = cmd()
-    log = False;
-    usuario= ''
+    #conn, addr = s.accept() 
+    #print >>sys.stderr, 'concexion desde', addr
+    #mycmd = cmd()
+    #log = False;
+    #usuario= ''
     while True:
-        if not log:
-            enviar('Envia tu \'username\'<espacio>\'password\' para logearte, o envia \'registrar\'','mensaje',conn)
-        while(log ==False):
-            recibido= recibir('mensaje','',conn)
-            #print 'al entrar log ',recibido
-            if(recibido.find('registrar')>=0):
-                enviar('Envia tu username<espacio>contrasenia para registrarte','mensaje',conn)
-                while(True):
-                    res = recibir('mensaje','',conn)
-                    res = res.split(' ')
-                    #print 'res ', res
-                    if(len(res)>1):
-                        if(m.registrar(res[0], res[1])):
-                            enviar('Registrado correctamente','mensaje',conn)
-                            usuario = res[0]
-                            #print 'usuario ', usuario
-                            #m.imprimir()
+        conn, addr = s.accept()
+        print >>sys.stderr, 'concexion desde', addr
+        start_new_thread(clientthread,(conn,))
+        '''
+        while True:
+            if not log:
+                enviar('Envia tu \'username\'<espacio>\'password\' para logearte, o envia \'registrar\'','mensaje',conn)
+            while(log ==False):
+                recibido= recibir('mensaje','',conn)
+                #print 'al entrar log ',recibido
+                if(recibido.find('registrar')>=0):
+                    enviar('Envia tu username<espacio>contrasenia para registrarte','mensaje',conn)
+                    while(True):
+                        res = recibir('mensaje','',conn)
+                        res = res.split(' ')
+                        #print 'res ', res
+                        if(len(res)>1):
+                            if(m.registrar(res[0], res[1])):
+                                enviar('Registrado correctamente','mensaje',conn)
+                                usuario = res[0]
+                                #print 'usuario ', usuario
+                                #m.imprimir()
+                                mycmd.terminal('mkdir '+usuario, conn)
+                                mycmd.terminal('cd /'+usuario, conn)
+                                mycmd.setUsuario(usuario)
+                                log = True
+                                break
+                            else:
+                                enviar('Error al registar usuario','mensaje',conn)
+                        else:
+                            enviar('Formato invalido','mensaje',conn)
+                else:
+                    recibido = recibido.split(' ')
+                    #print 'recibio ',recibido
+                    if(len(recibido)>1):
+                        #m.imprimir()
+                        if(m.log(recibido[0],recibido[1])):
+                            log = True
+                            usuario = recibido[0]
                             mycmd.terminal('mkdir '+usuario, conn)
                             mycmd.terminal('cd /'+usuario, conn)
                             mycmd.setUsuario(usuario)
-                            log = True
+                            enviar('Estas logeado','mensaje',conn)
                             break
                         else:
-                            enviar('Error al registar usuario','mensaje',conn)
-                    else:
-                        enviar('Formato invalido','mensaje',conn)
-            else:
-                recibido = recibido.split(' ')
-                #print 'recibio ',recibido
-                if(len(recibido)>1):
-                    #m.imprimir()
-                    if(m.log(recibido[0],recibido[1])):
-                        log = True
-                        usuario = recibido[0]
-                        mycmd.terminal('mkdir '+usuario, conn)
-                        mycmd.terminal('cd /'+usuario, conn)
-                        mycmd.setUsuario(usuario)
-                        enviar('Estas logeado','mensaje',conn)
-                        break
+                            enviar('Contrasenia o Username invalido\nEnvia tu \'username\'<espacio>\'password\' para logearte, o envia \'registrar\'','mensaje',conn)
+
                     else:
                         enviar('Contrasenia o Username invalido\nEnvia tu \'username\'<espacio>\'password\' para logearte, o envia \'registrar\'','mensaje',conn)
+            recibido = recibir('mensaje','',conn)
+            #print 'rec',recibido;
+            respuesta = mycmd.terminal(recibido, conn)
 
-                else:
-                    enviar('Contrasenia o Username invalido\nEnvia tu \'username\'<espacio>\'password\' para logearte, o envia \'registrar\'','mensaje',conn)
-        recibido = recibir('mensaje','',conn)
-        #print 'rec',recibido;
-        respuesta = mycmd.terminal(recibido, conn)
-
-        if(recibido=='salir'):
-            m.unlog(usuario)
-            #m.imprimir()
-            usuario =''
-            log = False
-            m.down()
-            #print respuesta
-            #print recibido
-            continue
-            #break
-        enviar(respuesta,'mensaje',conn)
+            if(recibido=='salir'):
+                m.unlog(usuario)
+                #m.imprimir()
+                usuario =''
+                log = False
+                m.down()
+                #print respuesta
+                #print recibido
+                conn.close()
+                #continue
+                break
+            enviar(respuesta,'mensaje',conn)
+        '''
         
-    conn.close()
+    #conn.close()
     m.down()
+    s.close()
 
 if __name__ == "__main__":
     main()
