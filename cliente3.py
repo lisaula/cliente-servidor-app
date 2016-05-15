@@ -99,29 +99,24 @@ def recibir(tipo, nombre, s):
 def recibir3(nombre, size, conn):
     size = int(size)
     cant = float(size/band_width)
-    dif= float(cant - int(cant))
-    dif = dif * band_width
-    tam = int(math.ceil(dif))
-    cant = int(cant)
-    #print 'tam ',tam
+    cant = math.ceil(cant)
     while True:
         f = open(nombre, "wb")
         content = conn.recv(band_width)
+        f.write(content)
         cant -=1
+        bytes_recv=band_width
         #print 'uno'
-        while cant>0:
-            #print 'cant ', cant
+        while cant>=0:
             # Enviar contenido.
+            left = min(size - bytes_recv,band_width)
+            if(left ==0):
+                break;
+            content = conn.recv(left)
             f.write(content)
-            #print content
-            content = conn.recv(band_width)
+            bytes_recv += len(content)
             cant -=1
-
             #print 'dos', cant
-        if(tam>0):
-            content = conn.recv(tam)
-            f.write(content)
-            #print 'tres'
         f.close()
         break
     print 'Recibido correctamente'
@@ -183,15 +178,21 @@ def enviar(nombre, tipo, s):
             dif = math.ceil(dif*band_width)
             #print 'antes ',cant
             #print cant
+            var =0
             while True:
                 f = open(nombre, "rb")
                 data = f.read(1024)
+                var +=1;
                 while data:
+                    print var
                     # Enviar contenido.
                     s.send(data)
+                    #time.sleep(0.5)
                     #print content
-                    data = f.read(1024)               
+                    data = f.read(1024)
+                    var +=1               
                 f.close()
+                print 'salio var ', var
                 break
                 #print 'contador ', cont
         # Se utiliza el caracter de código 1 para indicar
@@ -225,7 +226,7 @@ def unirName(var):
 
 def main():
     s = socket()
-    s.connect(("localhost", 6049))
+    s.connect(("localhost", 6052))
     
     while True:
         recibir('mensaje','',s)

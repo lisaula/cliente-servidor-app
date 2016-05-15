@@ -158,27 +158,24 @@ def recibir2(nombre, conn):
 def recibir3(nombre, size, conn):
     size = int(size)
     cant = float(size/band_width)
-    dif= float(cant - int(cant))
-    dif = dif * band_width
-    tam = int(math.ceil(dif))
-    cant = int(cant)
+    cant = math.ceil(cant)
     while True:
         f = open(nombre, "wb")
         content = conn.recv(band_width)
+        f.write(content)
         cant -=1
+        bytes_recv=band_width
         #print 'uno'
-        while cant>0:
+        while cant>=0:
             # Enviar contenido.
+            left = min(size - bytes_recv,band_width)
+            if(left ==0):
+                break;
+            content = conn.recv(left)
             f.write(content)
-            #print content
-            content = conn.recv(band_width)
+            bytes_recv += len(content)
             cant -=1
-
             #print 'dos', cant
-        if(tam>0):
-            content = conn.recv(tam)
-            f.write(content)
-            #print 'tres'
         f.close()
         break
     return 'Recibido correctamente'
@@ -338,7 +335,7 @@ def main():
     m = manager()
     m.load()
     s=socket()
-    s.bind(("localhost", 6049))
+    s.bind(("localhost", 6052))
     s.listen(5)
     conn, addr = s.accept() 
     print >>sys.stderr, 'concexion desde', addr
