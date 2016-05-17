@@ -284,7 +284,7 @@ def recibir(tipo, nombre, conn):
                     #print ' 1 else'
                     # Compatibilidad con Python 3.
                     if isinstance(input_data, bytes):
-                        fvar = input_data.find(chr(1))
+                        fvar = input_data.find("*")
                         if(fvar >0):
                             input_data = buffer(input_data,0,fvar)
                             end = True
@@ -391,7 +391,7 @@ def enviar(respuesta, tipo, conn):
         # al cliente que ya se ha enviado todo el contenido.
         try:
             if(tipo == 'mensaje'):
-                var = chr(1)
+                var = "*"
                 conn.send(var)
                 #print var
         except TypeError:
@@ -481,7 +481,7 @@ def main():
         '''
         
     #conn.close()
-    m.down()
+    #m.down()
     s.close()
 
 if __name__ == "__main__":

@@ -42,7 +42,7 @@ def recibir(tipo, nombre, s):
                         break
                     # Compatibilidad con Python 3.
                     if isinstance(input_data, bytes):
-                        fvar = input_data.find(chr(1))
+                        fvar = input_data.find("*")
                         if(fvar >0):
                             input_data = buffer(input_data,0,fvar)
                             end = True
@@ -151,7 +151,7 @@ def enviar(nombre, tipo, s):
                             print 'Error de comando'
                     else:
                         break
-
+                message+="*"
                 if(len(message)>band_width):
                     while True:
                         if(init >= len(message)):
@@ -200,9 +200,10 @@ def enviar(nombre, tipo, s):
         if(tipo =='archivo'):
             break
         try:
-            if(tipo == 'mensaje'):
-                var = chr(1)
-                s.send(var)
+            print ""
+            #if(tipo == 'mensaje'):
+             #   var = "*"
+              #  s.send(var)
                 #print var
         except TypeError:
             # Compatibilidad con Python 3.
@@ -256,7 +257,7 @@ def main():
             if(size != 'Archivo no existe'):
                 if(len(var)>2):
                     recibir3(var[2]+'/'+var[1],size,s)
-        elif var == 'salir':
+        elif var == 'salir*':
             s.close()
             return ''
         #recibir('mensaje','',s)
@@ -266,3 +267,11 @@ def main():
     #f.close()
 if __name__ == "__main__":
     main()
+
+
+'''
+RECORDATORIO:
+    CAMBIO DE ENVIO DE * SUMADO AL Mensaje, CHEQUIAR SERVER PYTHON SI NO AFECTA
+    QUITAR PRINTS DE DEBUGER
+    
+'''
